@@ -152,7 +152,6 @@ class LayerImporter():
 
   def load_layer_definition( self, layer ):
     if QgsMapLayerRegistry.instance().mapLayer( layer ) or layer in self.loaded_layers:
-      print ( 'Already loaded' )
       return
 
     basename = os.path.join( self.basepath, layer )
@@ -168,7 +167,6 @@ class LayerImporter():
     deps_node = maplayer_node.firstChildElement( 'dependencies' )
     deps_nodes = deps_node.elementsByTagName( 'dependency' )
     for i in range( deps_nodes.count() ):
-      print 'Loading ' + deps_nodes.at(i).toElement().text()
       self.load_layer_definition( deps_nodes.at(i).toElement().text() )
 
     if maplayer_node.attribute( 'type' ) == 'vector':
@@ -176,7 +174,7 @@ class LayerImporter():
     elif maplayer_node.attribute( 'type' ) == 'raster':
       layer = QgsRasterLayer()
     else:
-      raise TypeError( 'Cannot handle layers of type ' + maplayer_node.attribute( 'type' ) + ' - ' + maplayer_node.tagName() )
+      raise TypeError( 'Cannot handle layer ' + layer + ' of type ' + maplayer_node.attribute( 'type' ) + ' - ' + maplayer_node.tagName() )
 
     layer.readLayerXML( doc.documentElement() )
     QgsMapLayerRegistry.instance().addMapLayer( layer, False );
