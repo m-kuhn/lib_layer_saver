@@ -113,13 +113,15 @@ class LayerExporter():
         # Clean qlf document from styling information
         for qmlnode in ['edittypes',
                         'editform',
+                        'attributeEditorForm',
                         'editforminit',
                         'featformsuppress',
                         'annotationform',
                         'editorlayout',
                         'excludeAttributesWMS',
                         'excludeAttributesWFS',
-                        'attributeactions']:
+                        'attributeactions',
+                        'aliases']:
             root_node.removeChild(root_node.firstChildElement(qmlnode))
 
         with open(basename + '.qml', 'w') as f:
@@ -197,17 +199,16 @@ class LayerImporter():
 
         relnode = maplayer_node.firstChildElement('relations')
         relnodes = relnode.elementsByTagName('relation')
-        QMessageBox.information( None, 'Relation', layer.id() + ' - ' + str(relnodes.count()))
         for i in range(relnodes.count()):
             self.relations.append(relnodes.at(i))
 
+        layer.loadNamedStyle(basename + '.qml')
+        
     def load_layer(self,layer):
         assert len(self.relations) == 0
         self.load_layer_definition(layer)
-        QMessageBox.information( None, 'Relation', 'RELA ' + str(len(self.relations) ))
         for r in self.relations:
             rel = QgsRelation.createFromXML(r)
-            QMessageBox.information( None, 'Relation', 'Adding relation' + rel.id() )
             QgsProject.instance().relationManager().addRelation(rel)
 
         self.relations = list()
