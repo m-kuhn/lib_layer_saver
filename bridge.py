@@ -1,10 +1,14 @@
 from PyQt4.QtXml import *
 from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 from qgis.core import *
 import os
 
 
 class LayerExporter():
+    """
+    Export a layer and its dependencies including styling information
+    """
     def __init__(self, basepath):
         self.traversed_layers = list()
         self.basepath = basepath
@@ -133,6 +137,7 @@ class LayerImporter():
     """
 
     def __init__(self, basepath):
+        self.relations=list()
         self.basepath = basepath
         self.loaded_layers = list()
 
@@ -189,3 +194,20 @@ class LayerImporter():
         lt_node = self.read_layer_tree_path(maplayer_node.firstChildElement('layer-tree-group'),
                                             QgsProject.instance().layerTreeRoot())
         lt_node.insertLayer(-1, layer)
+
+        relnode = maplayer_node.firstChildElement('relations')
+        relnodes = relnode.elementsByTagName('relation')
+        QMessageBox.information( None, 'Relation', layer.id() + ' - ' + str(relnodes.count()))
+        for i in range(relnodes.count()):
+            self.relations.append(relnodes.at(i))
+
+    def load_layer(self,layer):
+        assert len(self.relations) == 0
+        self.load_layer_definition(layer)
+        QMessageBox.information( None, 'Relation', 'RELA ' + str(len(self.relations) ))
+        for r in self.relations:
+            rel = QgsRelation.createFromXML(r)
+            QMessageBox.information( None, 'Relation', 'Adding relation' + rel.id() )
+            QgsProject.instance().relationManager().addRelation(rel)
+
+        self.relations = list()
